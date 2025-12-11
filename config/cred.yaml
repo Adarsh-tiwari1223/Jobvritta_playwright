@@ -12,6 +12,9 @@ users:
     username_key: "FINANCE_USERNAME"
     password_key: "FINANCE_PASSWORD"
 
+secret:
+  password_key: "SECRET_PASSWORD"
+
 employees:
   rajiv:
     username_key: "RAJIV_USERNAME"

@@ -1,6 +1,4 @@
-environments:
-  staging: "https://stage.jobvritta.com/login"
-
+base_url: "https://stage.jobvritta.com"
 browser:
   headless: false
   viewport:

@@ -64,4 +64,11 @@ def load_config():
         if not emp_data["password"]:
             raise ValueError(f"Missing environment variable: {password_key}")
     
-    return {"settings": settings, "credentials": {"users": users, "employees": employees}}
+    # Process secret
+    secret = creds.get("secret", {})
+    if secret:
+        password_key = secret.get("password_key")
+        if password_key:
+            secret["password"] = os.getenv(password_key)
+    
+    return {"settings": settings, "credentials": {"users": users, "employees": employees, "secret": secret}}
