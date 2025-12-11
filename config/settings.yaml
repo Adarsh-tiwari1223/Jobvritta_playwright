@@ -1,0 +1,8 @@
+environments:
+  staging: "https://stage.jobvritta.com/login"
+
+browser:
+  headless: false
+  viewport:
+    width: 1366
+    height: 768
