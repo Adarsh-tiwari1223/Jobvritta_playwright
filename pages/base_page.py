@@ -172,7 +172,7 @@ class BasePage:
 
     def take_screenshot(self, name="screenshot", locator=None):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_path = f"screenshots/{name}_{timestamp}.png"
+        file_path = f"reports/screenshots/{name}_{timestamp}.png"
 
         if locator:
             locator.screenshot(path=file_path)
