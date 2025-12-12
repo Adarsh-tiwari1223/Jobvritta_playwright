@@ -2,31 +2,40 @@ from playwright.sync_api import Page
 from .base_page import BasePage
 
 class LoginPage(BasePage):
-    # Locators - Based on actual Jobvritta application
-    USERNAME_INPUT = "textbox[name='UserName']"
-    PASSWORD_INPUT = "textbox[name='Password']"
-    LOGIN_BUTTON = "button[name='LOGIN']"
-    SECRET_PASSWORD_INPUT = "textbox[name='Enter Secret Password']"
-    SAVE_BUTTON = "button[name='SAVE']"
-    DASHBOARD_LINK = "text='Dashboard'"
-    # Error message locator
-    USERNAME_REQUIRED_ERROR = "text='Username is required'"
-    PASSWORD_REQUIRED_ERROR = "text='Password is required'"
-    
     def __init__(self, page: Page):
         super().__init__(page)
+    
+    @property
+    def username_input(self):
+        return self.page.get_by_role("textbox", name="UserName")
+    
+    @property
+    def password_input(self):
+        return self.page.get_by_role("textbox", name="Password")
+    
+    @property
+    def login_button(self):
+        return self.page.get_by_role("button", name="LOGIN")
+    
+    @property
+    def secret_password_input(self):
+        return self.page.get_by_role("textbox", name="Enter Secret Password")
+    
+    @property
+    def save_button(self):
+        return self.page.get_by_role("button", name="SAVE")
         
     def navigate(self, url: str):
         self.open(url)
         
     def login(self, email: str, password: str):
-        self.page.get_by_role("textbox", name="UserName").fill(email)
-        self.page.get_by_role("textbox", name="Password").fill(password)
-        self.page.get_by_role("button", name="LOGIN").click()
+        self.username_input.fill(email)
+        self.password_input.fill(password)
+        self.login_button.click()
     
     def submit_secret(self, secret: str):
-        self.page.get_by_role("textbox", name="Enter Secret Password").fill(secret)
-        self.page.get_by_role("button", name="SAVE").click()
+        self.secret_password_input.fill(secret)
+        self.save_button.click()
 
     def login_error_msg(self) -> str:
         """Get login error message text."""
