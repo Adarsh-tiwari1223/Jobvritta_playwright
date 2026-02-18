@@ -36,6 +36,19 @@ class LoginPage(BasePage):
     def submit_secret(self, secret: str):
         self.secret_password_input.fill(secret)
         self.save_button.click()
+    
+    def login_via_name(self, name: str):
+        """Login using employee name from environment variables"""
+        import os
+        
+        name_upper = name.upper().replace(' ', '_')
+        username = os.getenv(f"{name_upper}_USERNAME")
+        password = os.getenv(f"{name_upper}_PASSWORD")
+        
+        if not username or not password:
+            raise ValueError(f"Credentials not found for {name}")
+            
+        self.login(username, password)
 
     def login_error_msg(self) -> str:
         """Get login error message text."""

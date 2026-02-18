@@ -35,6 +35,7 @@ def browser_context(settings):
             viewport=browser_cfg["viewport"],
             base_url=base_url
         )
+        context.set_default_timeout(60000)  # 60 seconds for slow tables
         yield context
         context.close()
         browser.close()
