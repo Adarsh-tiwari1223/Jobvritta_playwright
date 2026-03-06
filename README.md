@@ -52,27 +52,35 @@ playwright install
 ```
 
 ### 2. Configure Credentials
-Update `.env` file with actual credentials:
+Create a `.env` file in the root directory with your credentials:
 ```env
 # Admin Credentials
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=JV-HV@175#
+ADMIN_USERNAME=your_admin_username
+ADMIN_PASSWORD=your_admin_password
 
 # Secret Authentication
-SECRET_PASSWORD=Amar@12575
+SECRET_PASSWORD=your_secret_password
 
-# Employee Credentials by Name
-RAJIV_USERNAME=rajiv@jobvritta.com
-RAJIV_PASSWORD=Rajiv@123
-AMIT_USERNAME=amit@jobvritta.com
-AMIT_PASSWORD=Amit@456
+# HR Manager Credentials
+HR_MANAGER_USERNAME=your_hr_username
+HR_MANAGER_PASSWORD=your_hr_password
+
+# Employee Credentials
+NITIN_USERNAME=employee1@company.com
+NITIN_PASSWORD=employee1_password
+
+ANIL_USERNAME=employee2@company.com
+ANIL_PASSWORD=employee2_password
+
 # Add more employees as needed
 ```
+
+**Important**: Never commit the `.env` file. It's already in `.gitignore`.
 
 ### 3. Update Settings
 Modify `config/settings.yaml`:
 ```yaml
-base_url: "https://stage.jobvritta.com"
+base_url: "https://your-app-url.com"
 browser:
   headless: false
   viewport:
