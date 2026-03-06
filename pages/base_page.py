@@ -57,6 +57,11 @@ class BasePage:
             option.click()
         self.page.keyboard.press("Escape")
 
+    def select_dropdown_option(self, dropdown_button_name: str, option_value: str):
+        """Select option from dropdown by clicking button then option."""
+        self.page.get_by_role("button", name=dropdown_button_name).click()
+        self.page.get_by_role("option", name=option_value, exact=True).click()
+
     def universal_select(self, locator, value: str):
         """Automatically detect dropdown type and select."""
         tag = locator.evaluate("el => el.tagName.toLowerCase()")

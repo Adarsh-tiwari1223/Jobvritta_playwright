@@ -18,12 +18,16 @@ def test_valid_login(page, credentials, logger):
     
     # Perform login
     login_page.login(admin['username'], admin['password'])
+<<<<<<< HEAD
     
     # Submit secret password for admin
     page.wait_for_timeout(2000)
     secret = credentials['secret']['password']
     login_page.submit_secret(secret)
     
+=======
+    login_page.submit_secret(admin['secret_password'])
+>>>>>>> 17f97192ccff87d0a35c0db99ec8b5720beb7038
     # Verify successful login (check URL redirect)
     page.wait_for_timeout(3000)  # Wait for redirect
     current_url = page.url
