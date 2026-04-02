@@ -41,13 +41,24 @@ class BasePage:
         option.click()
 
     def auto_suggest_select(self, input_locator, input_text: str, option_text: str):
-        """Type in input → select matching suggestion."""
-        input_locator.fill(input_text)
-        self.page.wait_for_timeout(500)
-        option = self.page.get_by_role("option", name=option_text)
-        expect(option).to_be_visible()
-        option.click()
+        """Type in input → select matching suggestion (stable)."""
 
+        # Step 1: focus + type
+        input_locator.click()
+        input_locator.fill("")
+        input_locator.type(input_text, delay=50)
+
+        # Step 2: wait for suggestion panel
+        panel = self.page.locator(".p-autocomplete-panel, .p-dropdown-panel").last
+        panel.wait_for(state="visible")
+
+        # Step 3: select option inside panel
+        option = panel.locator("li", has_text=option_text).first
+        option.wait_for(state="visible")
+
+        option.click()
+        self._log(f"Selected suggestion: {option_text}")
+        
     def multi_select_dropdown(self, dropdown_locator, options: list):
         """Multi-select dropdown."""
         dropdown_locator.click()
@@ -185,3 +196,25 @@ class BasePage:
             self.page.screenshot(path=file_path)
 
         return file_path
+    
+    def fill_ckeditor_by_label(self, label_text: str, text: str):
+        # Step 1: Anchor to label (flexible match)
+        label = self.page.get_by_text(label_text, exact=False)
+
+        # Step 2: Move to container
+        container = label.locator("xpath=..")
+
+        # Step 3: Locate CKEditor textbox
+        editor = container.locator("div[role='textbox']")
+
+        # Step 4: Ensure single visible editor
+        editor = editor.first
+        editor.wait_for(state="visible")
+
+        # Step 5: Interact safely
+        editor.click()
+        editor.press("Control+A")
+        editor.type(text, delay=10)  # slight delay improves stability
+
+        self._log(f"Filled CKEditor field: {label_text}")
+    
