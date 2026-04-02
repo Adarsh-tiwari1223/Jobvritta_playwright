@@ -29,6 +29,8 @@ def run_requirement_flow(page, credentials, logger, employee_key, count=1):
 
         data = TestData.generate_requirement_data()
         sales_page.post_requirement(client_name, **data)
+        assert 
+
         logger.info(f"Requirement {idx} posted: {data['job_title']} for {client_name} - Rate: ${data['rate']}/hr")
 
         logger.info(f"========== Requirement {idx} END ==========")

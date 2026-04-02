@@ -1,12 +1,13 @@
 import random
 from playwright.sync_api import Page
+from pages.base_page import BasePage
 
 TABLE_SELECTOR = "body > div:nth-child(3) > div:nth-child(1) > div:nth-child(2) > form:nth-child(1) > div:nth-child(3) > div:nth-child(1) > div:nth-child(1) > table:nth-child(1) > tbody:nth-child(2)"
 
 
-class SalesRequirementPostingPage:
+class SalesRequirementPostingPage(BasePage):
     def __init__(self, page: Page, logger=None):
-        self.page = page
+        super().__init__(page)
         self.logger = logger
 
     def _log(self, msg: str):
@@ -33,7 +34,6 @@ class SalesRequirementPostingPage:
         self._log("Navigated to Sales My Requirement")
 
     def click_new(self):
-        # Close history dialog if present
         dialog = self.page.get_by_role("dialog", name="History of today posted Req")
         if dialog.is_visible():
             dialog.get_by_label("Close").click()
@@ -53,34 +53,30 @@ class SalesRequirementPostingPage:
             rows.nth(random.randint(0, total - 1)).locator("td").nth(0).click()
             self._log("Selected random client from existing table")
         else:
-            # Search using stored company name → pick from autocomplete suggestion
             combobox.click()
             combobox.fill(stored_company)
             self.page.wait_for_timeout(500)
-            # Pick first autocomplete suggestion
             self.page.get_by_role("option").first.click()
             self._log(f"Selected suggestion: {stored_company}")
 
-            # Click search button to load table
             self.page.locator(".p-button.p-component.p-button-warning").click()
             self._log("Clicked search button")
 
-            # Wait for dialog with results table
             dialog = self.page.locator("div.p-dialog-mask")
             dialog.wait_for(state="visible", timeout=60000)
             self.page.wait_for_timeout(500)
             self._log("Table loaded after search")
 
-            # Select first row inside dialog
             self.page.locator("div.p-dialog-mask tbody.p-datatable-tbody").locator("tr").nth(0).locator("td").nth(0).click()
             self._log("Selected first record from table")
 
-        # Close the client selection dialog
-        close_btn = self.page.get_by_role("button", name="Close")
-        if close_btn.is_visible():
-            close_btn.click()
-            self._log("Closed client selection dialog")
+            popup_close = self.page.locator("div.p-dialog-header").locator("div").nth(3)
+            if popup_close.is_visible():
+                popup_close.click()
+                self._log("Closed post-selection popup")
 
+        self.page.wait_for_load_state("networkidle")
+        self.page.wait_for_timeout(500)
         return stored_company
 
     def post_requirement(self, client_name: str, job_title: str, rate: str,
@@ -149,12 +145,10 @@ class SalesRequirementPostingPage:
         self.page.locator("li").filter(has_text="Phone").first.click()
         self._log("Selected client communication: Phone")
 
-        self.page.get_by_label("Job Description*").click()
-        self.page.get_by_label("Job Description*").fill(job_description)
+        self.fill_ckeditor_by_label("Job Description", job_description)
         self._log("Filled job description")
 
-        self.page.get_by_label("Additional Info:*").click()
-        self.page.get_by_label("Additional Info:*").fill(additional_info)
+        self.fill_ckeditor_by_label("Additional Info", additional_info)
         self._log("Filled additional info")
 
         self.page.get_by_role("button", name="SAVE").click()
