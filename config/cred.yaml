@@ -3,18 +3,6 @@ users:
     username_key: "ADMIN_USERNAME"
     password_key: "ADMIN_PASSWORD"
 
-  hr_manager:
-    username_key: "HR_MANAGER_USERNAME"
-    password_key: "HR_MANAGER_PASSWORD"
-
-  recruiter:
-    username_key: "RECRUITER_USERNAME"
-    password_key: "RECRUITER_PASSWORD"
-
-  finance:
-    username_key: "FINANCE_USERNAME"
-    password_key: "FINANCE_PASSWORD"
-
 secret:
   password_key: "SECRET_PASSWORD"
 
@@ -31,6 +19,10 @@ employees:
     username_key: "NEHA_USERNAME"
     password_key: "NEHA_PASSWORD"
 
+  shwetabh:
+    username_key: "SHWETABH_USERNAME"
+    password_key: "SHWETABH_PASSWORD"
+
   praveen:
     username_key: "PRAVEEN_USERNAME"
     password_key: "PRAVEEN_PASSWORD"
@@ -44,6 +36,7 @@ groups:
     - nitin
     - anil
     - neha
+    - shwetabh
 
   recruiters:
     - praveen
