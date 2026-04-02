@@ -34,9 +34,9 @@ class SalesRequirementPostingPage(BasePage):
         self._log("Navigated to Sales My Requirement")
 
     def click_new(self):
-        dialog = self.page.get_by_role("dialog", name="History of today posted Req")
-        if dialog.is_visible():
-            dialog.get_by_label("Close").click()
+        close_btn = self.page.locator("[role='dialog'] button[aria-label='Close']")
+        if close_btn.count() > 0 and close_btn.first.is_visible():
+            close_btn.first.click()
             self.page.wait_for_timeout(500)
             self._log("Closed history dialog")
         self.page.get_by_role("button", name="New").click()
@@ -70,10 +70,9 @@ class SalesRequirementPostingPage(BasePage):
             self.page.locator("div.p-dialog-mask tbody.p-datatable-tbody").locator("tr").nth(0).locator("td").nth(0).click()
             self._log("Selected first record from table")
 
-            popup_close = self.page.locator("div.p-dialog-header").locator("div").nth(3)
-            if popup_close.is_visible():
-                popup_close.click()
-                self._log("Closed post-selection popup")
+            close_btn = self.page.locator("[role='dialog'] button[aria-label='Close']")
+            if close_btn.count() > 0 and close_btn.first.is_visible():
+                 close_btn.first.click()
 
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(500)
@@ -153,3 +152,7 @@ class SalesRequirementPostingPage(BasePage):
 
         self.page.get_by_role("button", name="SAVE").click()
         self._log(f"Saved requirement: {job_title} - Rate: ${rate}/hr")
+
+        toast = self.get_toast_message(timeout=6000)
+        assert "Added Successfully" in toast, f"Expected success toast, got: '{toast}'"
+        self._log(f"Success toast verified: {toast}")
