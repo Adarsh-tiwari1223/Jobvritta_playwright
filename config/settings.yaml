@@ -1,6 +1,25 @@
 base_url: "https://stage.jobvritta.com"
+
 browser:
+  name: "chromium"          # chromium | firefox | webkit
   headless: false
-  viewport:
-    width: 1366
-    height: 768
+
+  # Use null for maximized / responsive mode
+  viewport: null
+
+  # Launch arguments
+  args:
+    - "--start-maximized"
+
+  # Timeouts (in milliseconds)
+  timeout:
+    default: 30000
+    navigation: 60000
+
+  # Context settings
+  context:
+    ignore_https_errors: true
+    accept_downloads: true
+
+  # Optional slow motion (debugging)
+  slow_mo: 0

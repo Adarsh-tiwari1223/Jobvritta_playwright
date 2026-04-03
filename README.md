@@ -11,6 +11,7 @@ A robust test automation framework built with Playwright and Python for testing 
 - **Smart Error Detection** - Automatic validation error capture
 - **Detailed Logging & Screenshots** - Complete test execution tracking
 - **HTML Reports** - Beautiful test reports with organized screenshots
+- **Dynamic Test Data** - Auto-generated job titles, skills, rates, and descriptions
 
 ## 📁 Project Structure
 
@@ -19,12 +20,16 @@ Jobvritta_playwright/
 ├── config/
 │   ├── settings.yaml      # Environment URLs & browser settings
 │   └── cred.yaml         # Credential mappings (no secrets)
+├── data/
+│   └── requirement_posting_data.py  # Dynamic test data generator for requirements
 ├── pages/
 │   ├── base_page.py      # Universal page interactions & utilities
-│   └── loginpage.py      # Login & secret auth page object
+│   ├── loginpage.py      # Login & secret auth page object
+│   └── Sales_requirement_posting_page.py  # Sales requirement posting page object
 ├── tests/
 │   ├── conftest.py       # Pytest fixtures & configuration
-│   └── test_login.py     # Login test cases (valid/invalid)
+│   ├── test_login.py     # Login test cases (valid/invalid)
+│   └── test_sales_post_requirement.py  # Sales requirement posting tests
 ├── utils/
 │   ├── logger_setup.py   # Logging configuration
 │   ├── yaml_loader.py    # Configuration loader
@@ -36,7 +41,8 @@ Jobvritta_playwright/
 ├── .env                  # Secure credentials (not in git)
 ├── .gitignore           # Git ignore rules
 ├── pytest.ini          # Pytest configuration
-└── requirements.txt     # Python dependencies
+├── requirements.txt     # Python dependencies
+└── setup.bat            # One-click environment setup
 ```
 
 ## 🛠️ Setup
@@ -49,6 +55,11 @@ python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 playwright install
+```
+
+Or use the one-click setup:
+```bash
+setup.bat
 ```
 
 ### 2. Configure Credentials
@@ -109,7 +120,14 @@ python -m pytest tests/ --html=reports/report.html --self-contained-html -v -s
 
 ### Specific Test File
 ```bash
+# Login tests
 python -m pytest tests/test_login.py -v -s
+
+# Sales requirement posting
+python -m pytest tests/test_sales_post_requirement.py -v -s
+
+# Single test
+python -m pytest tests/test_sales_post_requirement.py::test_sales_post_requirement -v -s
 ```
 
 **Note**: Use `-s` flag to see console output and debug information.
@@ -124,8 +142,8 @@ login_page.login(admin['username'], admin['password'])
 login_page.submit_secret(credentials['secret']['password'])
 
 # Employee login by name
-rajiv = credentials['employees']['rajiv']
-login_page.login(rajiv['username'], rajiv['password'])
+nitin = credentials['employees']['nitin']
+login_page.login(nitin['username'], nitin['password'])
 ```
 
 ### Adding New Employees
@@ -141,6 +159,24 @@ employees:
   new_employee:
     username_key: "NEW_EMPLOYEE_USERNAME"
     password_key: "NEW_EMPLOYEE_PASSWORD"
+```
+
+## 📦 Test Data
+
+### Dynamic Requirement Data (`data/requirement_posting_data.py`)
+Test data is auto-generated per run using `TestData.generate_requirement_data()`:
+
+- `job_title` — random title with timestamp suffix for uniqueness
+- `job_term` — randomly picked from `Contract`, `Contract-to-Hire`, `Permanent`
+- `duration` — only generated when `job_term` is `Contract` or `Contract-to-Hire`
+- `rate` — random value between $106–$150/hr
+- `skills` — 3 random skills from a predefined pool
+- `positions` — random between 1–2
+- `job_description` / `additional_info` — random word combinations
+
+```python
+data = TestData.generate_requirement_data()
+sales_page.post_requirement(client_name, **data)
 ```
 
 ## 🔧 Configuration
@@ -166,7 +202,6 @@ python -m pytest tests/ --html=reports/report.html --self-contained-html -v
 - **Console output**: Real-time with `-s` flag
 - **File logging**: `reports/test.log`
 - **Screenshots**: `reports/screenshots/`
-- **Debug images**: Automatic capture on test steps
 
 ### Report Structure
 ```
@@ -183,38 +218,32 @@ reports/
 ### Page Objects
 ```python
 class LoginPage(BasePage):
-    # Locators based on actual Jobvritta application
     USERNAME_INPUT = "textbox[name='UserName']"
     PASSWORD_INPUT = "textbox[name='Password']"
     LOGIN_BUTTON = "button[name='LOGIN']"
-    
+
     def login(self, username, password):
         self.page.get_by_role("textbox", name="UserName").fill(username)
         self.page.get_by_role("textbox", name="Password").fill(password)
         self.page.get_by_role("button", name="LOGIN").click()
-    
-    def submit_secret(self, secret):
-        self.page.get_by_role("textbox", name="Enter Secret Password").fill(secret)
-        self.page.get_by_role("button", name="SAVE").click()
 ```
 
 ### Test Structure
 ```python
 @pytest.mark.smoke
-def test_login(page, credentials, logger):
-    page.goto("/login")
-    login_page = LoginPage(page)
-    admin = credentials['users']['admin']
-    login_page.login(admin['username'], admin['password'])
-    logger.info("Login successful")
+def test_sales_post_requirement(page, credentials, logger):
+    run_requirement_flow(page, credentials, logger, employee_key='nitin', count=1)
+
+@pytest.mark.regression
+def test_sales_post_multiple_requirements(page, credentials, logger):
+    run_requirement_flow(page, credentials, logger, employee_key='anil', count=3)
 ```
 
-### Error Detection
+### Toast Assertion
 ```python
-# Automatic validation error detection
-error = login_page.login_error_msg()
-if error:
-    print(f"Validation errors: {error}")
+# Waits for navigation then captures toast
+toast = self.get_toast_message(timeout=6000)
+assert "Added Successfully" in toast, f"Expected success toast, got: '{toast}'"
 ```
 
 ## 🤝 Team Collaboration
@@ -238,25 +267,23 @@ if error:
 2. **Timeout errors**: Check selectors match Jobvritta application
 3. **Login failures**: Verify credentials in `.env`
 4. **Import errors**: Ensure proper project structure
+5. **Toast not captured**: `get_toast_message` waits for `networkidle` before reading — ensure page navigates after SAVE
+6. **Dialog blocking clicks**: Use locators scoped inside `div.p-dialog-content` for child dialogs to avoid parent table interference
+7. **Wrong dialog closed**: Use `.filter(has_text=...)` to target specific dialog close buttons when multiple dialogs are open
 
 ### Debug Mode
 ```python
 # Highlight elements for debugging
 login_page.highlight(login_page.find(login_page.USERNAME_INPUT))
 
-# Take screenshots (saved to reports/screenshots/)
+# Take screenshots
 login_page.take_screenshot("debug_login")
 
-# Error message detection
-error = login_page.login_error_msg()
-if error:
-    print(f"Login error: {error}")
+# Toast message detection
+toast = sales_page.get_toast_message()
+if toast:
+    print(f"Toast: {toast}")
 ```
-
-### Validation Errors
-The framework automatically detects Jobvritta validation messages:
-- `"username is required*"`
-- `"password is required*"`
 
 ## 📝 Contributing
 
