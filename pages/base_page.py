@@ -140,6 +140,7 @@ class BasePage:
         try:
             self.page.wait_for_load_state("networkidle", timeout=10000)
             locator = self.page.locator(
+                ":text-is('Added Successfully'), "
                 "[role='alert'], [role='status'], [aria-live='polite'], "
                 ".p-toast-message-text, .p-toast-detail, "
                 ".mat-snack-bar-label, .toast-message, .alert"
