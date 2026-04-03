@@ -45,14 +45,20 @@ class TestData:
         text = " ".join(random.choices(TestData.WORDS, k=40))
         return text[:max_chars]
 
+    JOB_TERMS = ["Contract", "Contract-to-Hire", "Permanent"]
+
     @staticmethod
     def generate_requirement_data():
-        return {
+        job_term = random.choice(TestData.JOB_TERMS)
+        data = {
             "job_title": TestData.get_unique_job_title(),
+            "job_term": job_term,
             "rate": TestData.get_rate(),
             "skills": TestData.get_skills(),
-            "duration": TestData.get_duration(),
             "positions": TestData.get_positions(),
             "job_description": TestData.get_description(),
             "additional_info": TestData.get_description(180),
         }
+        if job_term in ("Contract", "Contract-to-Hire"):
+            data["duration"] = TestData.get_duration()
+        return data
