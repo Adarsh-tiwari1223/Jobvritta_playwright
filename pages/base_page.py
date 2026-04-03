@@ -135,39 +135,25 @@ class BasePage:
     # ==========================================================
     # TOAST MESSAGE READER (ALL FRAMEWORKS)
     # ==========================================================
-
     def get_toast_message(self, timeout=4000) -> str:
-        """Reads toast/snackbar messages from any UI library."""
-
-        # Preferred ARIA role
+        """Fetch toast/snackbar message reliably across UI libraries."""
         try:
-            alert = self.page.get_by_role("alert").first
-            alert.wait_for(timeout=timeout)
-            text = alert.inner_text().strip()
+            self.page.wait_for_load_state("networkidle", timeout=10000)
+            locator = self.page.locator(
+                "[role='alert'], [role='status'], [aria-live='polite'], "
+                ".p-toast-message-text, .p-toast-detail, "
+                ".mat-snack-bar-label, .toast-message, .alert"
+            ).first
+
+            locator.wait_for(state="visible", timeout=timeout)
+
+            text = locator.inner_text().strip()
+
             if text:
                 return text
-        except:
-            pass
 
-        selectors = [
-            ".p-toast-message-text",
-            ".p-toast-detail",
-            ".mat-snack-bar-label",
-            ".toast-message",
-            "[role='status']",
-            "[aria-live='polite']",
-            ".alert"
-        ]
-
-        for sel in selectors:
-            try:
-                elm = self.page.locator(sel).first
-                elm.wait_for(timeout=1000)
-                text = elm.inner_text().strip()
-                if text:
-                    return text
-            except:
-                continue
+        except Exception as e:
+            self._log(f"No toast found within {timeout}ms | Reason: {str(e)}")
 
         return ""
 

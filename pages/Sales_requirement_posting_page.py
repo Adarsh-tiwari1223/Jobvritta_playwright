@@ -2,8 +2,6 @@ import random
 from playwright.sync_api import Page
 from pages.base_page import BasePage
 
-TABLE_SELECTOR = "body > div:nth-child(3) > div:nth-child(1) > div:nth-child(2) > form:nth-child(1) > div:nth-child(3) > div:nth-child(1) > div:nth-child(1) > table:nth-child(1) > tbody:nth-child(2)"
-
 
 class SalesRequirementPostingPage(BasePage):
     def __init__(self, page: Page, logger=None):
@@ -34,63 +32,55 @@ class SalesRequirementPostingPage(BasePage):
         self._log("Navigated to Sales My Requirement")
 
     def click_new(self):
-        close_btn = self.page.locator("[role='dialog'] button[aria-label='Close']")
-        if close_btn.count() > 0 and close_btn.first.is_visible():
-            close_btn.first.click()
-            self.page.wait_for_timeout(500)
-            self._log("Closed history dialog")
         self.page.get_by_role("button", name="New").click()
         self.page.wait_for_load_state("networkidle")
         self._log("Clicked New button")
 
     def get_client_from_requirement_table(self, stored_company: str) -> str:
         combobox = self.page.get_by_role("combobox", name="Search Client/Company")
-        table = self.page.locator(TABLE_SELECTOR)
+        combobox.click()
+        combobox.fill(stored_company)
+        self.page.wait_for_timeout(500)
+        self.page.get_by_role("option").first.click()
+        self._log(f"Selected suggestion: {stored_company}")
 
-        if table.is_visible():
-            rows = self.page.locator("tbody.p-datatable-tbody").locator("tr")
-            total = rows.count()
-            rows.nth(random.randint(0, total - 1)).locator("td").nth(0).click()
-            self._log("Selected random client from existing table")
-        else:
-            combobox.click()
-            combobox.fill(stored_company)
+        self.page.locator(".p-button.p-component.p-button-warning").click()
+        self._log("Clicked search button")
+
+        child_dialog = self.page.locator("div.p-dialog-mask div.p-dialog-content")
+        child_dialog.wait_for(state="visible", timeout=60000)
+        self.page.wait_for_timeout(500)
+        self._log("Child dialog table loaded")
+
+        radio = child_dialog.locator("td > .p-radiobutton > .p-radiobutton-box").first
+        radio.wait_for(state="visible", timeout=10000)
+        radio.click()
+        self._log("Selected first record via radio button")
+
+        history_dialog = self.page.locator("[role='dialog']").filter(has_text="History of today posted Req")
+        if history_dialog.count() > 0 and history_dialog.is_visible():
+            history_dialog.locator("button[aria-label='Close']").click()
             self.page.wait_for_timeout(500)
-            self.page.get_by_role("option").first.click()
-            self._log(f"Selected suggestion: {stored_company}")
-
-            self.page.locator(".p-button.p-component.p-button-warning").click()
-            self._log("Clicked search button")
-
-            dialog = self.page.locator("div.p-dialog-mask")
-            dialog.wait_for(state="visible", timeout=60000)
-            self.page.wait_for_timeout(500)
-            self._log("Table loaded after search")
-
-            self.page.locator("div.p-dialog-mask tbody.p-datatable-tbody").locator("tr").nth(0).locator("td").nth(0).click()
-            self._log("Selected first record from table")
-
-            close_btn = self.page.locator("[role='dialog'] button[aria-label='Close']")
-            if close_btn.count() > 0 and close_btn.first.is_visible():
-                 close_btn.first.click()
+            self._log("Closed history dialog")
 
         self.page.wait_for_load_state("networkidle")
         self.page.wait_for_timeout(500)
         return stored_company
 
     def post_requirement(self, client_name: str, job_title: str, rate: str,
-                         skills: str, duration: str = "6", positions: str = "1",
-                         job_description: str = "", additional_info: str = ""):
+                         skills: str, job_term: str = "Contract", duration: str = None,
+                         positions: str = "1", job_description: str = "", additional_info: str = ""):
 
         self.page.locator("input[name='req_Job_Title']").fill(job_title)
         self._log(f"Filled job title: {job_title}")
 
         self.page.locator("span").filter(has_text="Contract").click()
-        self.page.get_by_role("option", name="Permanent").click()
-        self._log("Selected job term: Permanent")
+        self.page.get_by_role("option", name=job_term, exact=True).click()
+        self._log(f"Selected job term: {job_term}")
 
-        self.page.get_by_role("spinbutton").first.fill(duration)
-        self._log(f"Filled duration: {duration}")
+        if job_term in ("Contract", "Contract-to-Hire") and duration:
+            self.page.locator("input[name='req_Duration']").fill(duration)
+            self._log(f"Filled duration: {duration}")
 
         self.page.locator("span").filter(has_text="Onsite").click()
         self.page.get_by_role("option", name="Remote").click()
@@ -150,9 +140,11 @@ class SalesRequirementPostingPage(BasePage):
         self.fill_ckeditor_by_label("Additional Info", additional_info)
         self._log("Filled additional info")
 
-        self.page.get_by_role("button", name="SAVE").click()
-        self._log(f"Saved requirement: {job_title} - Rate: ${rate}/hr")
-
+        self.page.locator("button").filter(has_text="SAVE").click()
+        self.logger.info("Clicked SAVE button")
         toast = self.get_toast_message(timeout=6000)
         assert "Added Successfully" in toast, f"Expected success toast, got: '{toast}'"
         self._log(f"Success toast verified: {toast}")
+        self._log(f"Saved requirement: {job_title} - Rate: ${rate}/hr")
+
+       
