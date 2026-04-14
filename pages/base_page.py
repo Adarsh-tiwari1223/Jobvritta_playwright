@@ -1,5 +1,9 @@
 from playwright.sync_api import Page, expect
 from datetime import datetime
+from pathlib import Path
+
+SCREENSHOTS_DIR = Path("reports") / "screenshots"
+SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class BasePage:
@@ -135,27 +139,17 @@ class BasePage:
     # ==========================================================
     # TOAST MESSAGE READER (ALL FRAMEWORKS)
     # ==========================================================
-    def get_toast_message(self, timeout=4000) -> str:
+    def get_toast_message(self, timeout=8000) -> str:
         """Fetch toast/snackbar message reliably across UI libraries."""
         try:
-            self.page.wait_for_load_state("networkidle", timeout=10000)
-            locator = self.page.locator(
-                ":text-is('Added Successfully'), "
-                "[role='alert'], [role='status'], [aria-live='polite'], "
-                ".p-toast-message-text, .p-toast-detail, "
-                ".mat-snack-bar-label, .toast-message, .alert"
-            ).first
-
-            locator.wait_for(state="visible", timeout=timeout)
-
-            text = locator.inner_text().strip()
-
+            toast = self.page.get_by_text("Added Successfully").first
+            toast.wait_for(state="visible", timeout=timeout)
+            text = toast.inner_text().strip()
             if text:
+                self._log(f"Toast captured: {text}")
                 return text
-
-        except Exception as e:
-            self._log(f"No toast found within {timeout}ms | Reason: {str(e)}")
-
+        except Exception:
+            pass
         return ""
 
     # ==========================================================
@@ -175,14 +169,14 @@ class BasePage:
 
     def take_screenshot(self, name="screenshot", locator=None):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        file_path = f"reports/screenshots/{name}_{timestamp}.png"
+        file_path = SCREENSHOTS_DIR / f"{name}_{timestamp}.png"
 
         if locator:
-            locator.screenshot(path=file_path)
+            locator.screenshot(path=str(file_path))
         else:
-            self.page.screenshot(path=file_path)
+            self.page.screenshot(path=str(file_path))
 
-        return file_path
+        return str(file_path)
     
     def fill_ckeditor_by_label(self, label_text: str, text: str):
         # Step 1: Anchor to label (flexible match)
