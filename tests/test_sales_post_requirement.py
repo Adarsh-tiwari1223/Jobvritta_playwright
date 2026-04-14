@@ -4,7 +4,7 @@ from pages.Sales_requirement_posting_page import SalesRequirementPostingPage
 from data.requirement_posting_data import TestData
 
 
-def run_requirement_flow(page, credentials, logger, employee_key, count=1):
+def run_requirement_flow(page, credentials, logger, employee_key='shivanshu', count=5):
     page.goto("/login")
     page.wait_for_load_state("networkidle")
 
@@ -37,7 +37,7 @@ def run_requirement_flow(page, credentials, logger, employee_key, count=1):
 
 @pytest.mark.smoke
 def test_sales_post_requirement(page, credentials, logger):
-    run_requirement_flow(page, credentials, logger, employee_key='nitin', count=1)
+    run_requirement_flow(page, credentials, logger, employee_key='shivanshu', count=1)
 
 
 @pytest.mark.regression

@@ -139,10 +139,9 @@ class BasePage:
     # ==========================================================
     # TOAST MESSAGE READER (ALL FRAMEWORKS)
     # ==========================================================
-    def get_toast_message(self, timeout=4000) -> str:
+    def get_toast_message(self, timeout=8000) -> str:
         """Fetch toast/snackbar message reliably across UI libraries."""
         try:
-            self.page.wait_for_load_state("domcontentloaded")
             toast = self.page.get_by_text("Added Successfully").first
             toast.wait_for(state="visible", timeout=timeout)
             text = toast.inner_text().strip()

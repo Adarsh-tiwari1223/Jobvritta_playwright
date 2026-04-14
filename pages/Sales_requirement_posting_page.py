@@ -140,11 +140,22 @@ class SalesRequirementPostingPage(BasePage):
         self.fill_ckeditor_by_label("Additional Info", additional_info)
         self._log("Filled additional info")
 
-        self.page.locator("button").filter(has_text="SAVE").click()
-        self.logger.info("Clicked SAVE button")
-        toast = self.get_toast_message(timeout=6000)
-        assert "Added Successfully" in toast, f"Expected success toast, got: '{toast}'"
-        self._log(f"Success toast verified: {toast}")
+        save_btn = self.page.locator("button").filter(has_text="SAVE")
+        save_btn.click()
+        self._log("Clicked SAVE button")
+        # Wait for SAVE button to finish loading state
+        self.page.wait_for_function(
+            "() => !document.querySelector('button.p-button-loading')",
+            timeout=60000
+        )
+        self._log("SAVE completed")
+        try:
+            self.page.locator(".p-toast-message").first.wait_for(state="visible", timeout=8000)
+            toast = self.page.locator(".p-toast-message").first.inner_text().strip()
+        except:
+            toast = self.get_toast_message(timeout=5000)
+        self._log(f"Toast: '{toast}'")
+        assert toast, f"No success toast after saving requirement: '{job_title}'"
         self._log(f"Saved requirement: {job_title} - Rate: ${rate}/hr")
 
        

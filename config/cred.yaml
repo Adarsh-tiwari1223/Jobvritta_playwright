@@ -30,6 +30,9 @@ employees:
   sunita:
     username_key: "SUNITA_USERNAME"
     password_key: "SUNITA_PASSWORD"
+  shivanshu:
+    username_key: "SHIVANSHU_USERNAME"
+    password_key: "SHIVANSHU_PASSWORD"
 
 groups:
   sales:
@@ -37,6 +40,8 @@ groups:
     - anil
     - neha
     - shwetabh
+    - shivanshu
+
 
   recruiters:
     - praveen
